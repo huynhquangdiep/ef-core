@@ -43,3 +43,9 @@ obj
 
 # local sqlite db that is auto generated
 LocalDatabase.db
+
+logs
+internal_logs
+
+.vs
+.vscode

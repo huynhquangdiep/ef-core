@@ -1,9 +1,9 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace WebApi.Migrations.SqliteMigrations
+namespace WebApi.Migrations
 {
-    public partial class InitialCreate : Migration
+    public partial class User : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -11,8 +11,16 @@ namespace WebApi.Migrations.SqliteMigrations
                 name: "Users",
                 columns: table => new
                 {
-                    Id = table.Column<int>(nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
+                    Id = table.Column<Guid>(nullable: false),
+                    RecordOrder = table.Column<int>(nullable: false),
+                    RecordDeleted = table.Column<bool>(nullable: false),
+                    RecordActive = table.Column<bool>(nullable: false),
+                    CreatedOn = table.Column<DateTime>(nullable: true),
+                    CreatedBy = table.Column<Guid>(nullable: true),
+                    UpdatedOn = table.Column<DateTime>(nullable: true),
+                    UpdatedBy = table.Column<Guid>(nullable: true),
+                    DeletedBy = table.Column<Guid>(nullable: true),
+                    DeletedOn = table.Column<DateTime>(nullable: true),
                     FirstName = table.Column<string>(nullable: true),
                     LastName = table.Column<string>(nullable: true),
                     Username = table.Column<string>(nullable: true),

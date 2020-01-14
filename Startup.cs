@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
 using WebApi.Helpers;
 using WebApi.Services;
 using AutoMapper;
@@ -12,6 +11,11 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System;
+using NLog;
+using System.IO;
+using WebApi.LoggerService;
+using WebApi.Extensions;
+using WebApi.Filters.ActionFilters;
 
 namespace WebApi
 {
@@ -30,10 +34,15 @@ namespace WebApi
         public void ConfigureServices(IServiceCollection services)
         {
             // use sql server db in production and sqlite db in development
-            if (_env.IsProduction())
-                services.AddDbContext<DataContext>();
-            else
-                services.AddDbContext<DataContext, SqliteDataContext>();
+            services.AddDbContext<DataContext>();
+
+            // register package nlog
+            LogManager.LoadConfiguration(String.Concat(Directory.GetCurrentDirectory(), "/nlog.config"));
+
+            // register service log manager
+            services.AddSingleton<ILoggerManager, LoggerManager>();
+
+            services.AddScoped<ValidationFilterAttribute>();
 
             services.AddCors();
             services.AddControllers();
@@ -58,7 +67,7 @@ namespace WebApi
                     OnTokenValidated = context =>
                     {
                         var userService = context.HttpContext.RequestServices.GetRequiredService<IUserService>();
-                        var userId = int.Parse(context.Principal.Identity.Name);
+                        var userId = Guid.Parse(context.Principal.Identity.Name);
                         var user = userService.GetById(userId);
                         if (user == null)
                         {
@@ -84,12 +93,14 @@ namespace WebApi
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, DataContext dataContext)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, DataContext dataContext, ILoggerManager logger)
         {
             // migrate any database changes on startup (includes initial db creation)
             dataContext.Database.Migrate();
 
             app.UseRouting();
+
+            app.ConfigureExceptionHandler(logger);
 
             // global cors policy
             app.UseCors(x => x

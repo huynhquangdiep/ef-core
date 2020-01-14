@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebApi.Helpers;
 
-namespace WebApi.Migrations.SqlServerMigrations
+namespace WebApi.Migrations
 {
     [DbContext(typeof(DataContext))]
     partial class DataContextModelSnapshot : ModelSnapshot
@@ -21,10 +21,21 @@ namespace WebApi.Migrations.SqlServerMigrations
 
             modelBuilder.Entity("WebApi.Entities.User", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("FirstName")
                         .HasColumnType("nvarchar(max)");
@@ -37,6 +48,21 @@ namespace WebApi.Migrations.SqlServerMigrations
 
                     b.Property<byte[]>("PasswordSalt")
                         .HasColumnType("varbinary(max)");
+
+                    b.Property<bool>("RecordActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("RecordDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("RecordOrder")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Username")
                         .HasColumnType("nvarchar(max)");

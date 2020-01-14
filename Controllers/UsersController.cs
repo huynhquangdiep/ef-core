@@ -12,6 +12,8 @@ using Microsoft.AspNetCore.Authorization;
 using WebApi.Services;
 using WebApi.Entities;
 using WebApi.Models.Users;
+using WebApi.LoggerService;
+using WebApi.Filters.ActionFilters;
 
 namespace WebApi.Controllers
 {
@@ -23,15 +25,18 @@ namespace WebApi.Controllers
         private IUserService _userService;
         private IMapper _mapper;
         private readonly AppSettings _appSettings;
+        private readonly ILoggerManager _logger;
 
         public UsersController(
             IUserService userService,
             IMapper mapper,
-            IOptions<AppSettings> appSettings)
+            IOptions<AppSettings> appSettings,
+            ILoggerManager logger)
         {
             _userService = userService;
             _mapper = mapper;
             _appSettings = appSettings.Value;
+            _logger = logger;
         }
 
         [AllowAnonymous]
@@ -70,6 +75,7 @@ namespace WebApi.Controllers
 
         [AllowAnonymous]
         [HttpPost("register")]
+        [ServiceFilter(typeof(ValidationFilterAttribute))]
         public IActionResult Register([FromBody]RegisterModel model)
         {
             // map model to entity
@@ -78,8 +84,8 @@ namespace WebApi.Controllers
             try
             {
                 // create user
-                _userService.Create(user, model.Password);
-                return Ok();
+                var result = _userService.Create(user, model.Password);
+                return Ok(result);
             }
             catch (AppException ex)
             {
@@ -91,13 +97,20 @@ namespace WebApi.Controllers
         [HttpGet]
         public IActionResult GetAll()
         {
+            _logger.LogInfo("Fetching all the Students from the storage");
+
             var users = _userService.GetAll();
             var model = _mapper.Map<IList<UserModel>>(users);
+
+            throw new Exception("Exception while fetching all the users from the storage.");
+
+            _logger.LogInfo($"Returning list students.");
+
             return Ok(model);
         }
 
         [HttpGet("{id}")]
-        public IActionResult GetById(int id)
+        public IActionResult GetById(Guid id)
         {
             var user = _userService.GetById(id);
             var model = _mapper.Map<UserModel>(user);
@@ -105,7 +118,7 @@ namespace WebApi.Controllers
         }
 
         [HttpPut("{id}")]
-        public IActionResult Update(int id, [FromBody]UpdateModel model)
+        public IActionResult Update(Guid id, [FromBody]UpdateModel model)
         {
             // map model to entity and set id
             var user = _mapper.Map<User>(model);
@@ -113,7 +126,7 @@ namespace WebApi.Controllers
 
             try
             {
-                // update user 
+                // update user
                 _userService.Update(user, model.Password);
                 return Ok();
             }

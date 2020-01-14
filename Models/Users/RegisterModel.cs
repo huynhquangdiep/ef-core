@@ -4,7 +4,7 @@ namespace WebApi.Models.Users
 {
     public class RegisterModel
     {
-        [Required]
+
         public string FirstName { get; set; }
 
         [Required]
